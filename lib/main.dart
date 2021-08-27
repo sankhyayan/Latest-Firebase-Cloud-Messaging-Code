@@ -3,17 +3,16 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:latest_fcm_template/greenScreen.dart';
 import 'package:latest_fcm_template/redPage.dart';
 import 'package:flutter/material.dart';
+import 'package:latest_fcm_template/services/local_notification_service.dart';
 
 ///Receives and HANDLES message when the app is in background or terminated. Isolate top level Function
 Future<void> backgroundHandler(RemoteMessage message) async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
   print(message.data.toString());
   print(message.notification!.title);
 }
 
 ///main function aka starting point
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
@@ -50,34 +49,39 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  ///declarations inside init state
   @override
   void initState() {
     super.initState();
 
+    ///initializing with context
+    LocalNotificationService.initialize(context);
+
     ///foreground push Notifications ONLY
-    ///code for handling notification data when app is on foreground ie. open and being actively used
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print(message.notification!.body);
-      print(message.notification!.title);
+    ///code for HANDLING notification data when app is on foreground ie. open and being actively used
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+      await LocalNotificationService.display(
+          message); //displaying foreground notification data
     });
 
-    ///This is the code which helps the app RE-RUN from its terminated state when user presses on a
-    ///notification
-    FirebaseMessaging.instance.getInitialMessage().then((message) {
-      if(message!=null){
-        final routeFromMessage = message.data['route'];
-        Navigator.pushNamed(context, routeFromMessage);
+    ///CODE FOR NOTIFICATIONS WITH TAP FUNCTIONALITY usually resulting in some process.
+    ///when app is in : 1)background and terminated ie.not open and user may or may not be actively using the
+    ///                  phone or any other app
+    ///this code makes the app RE-RUN if terminated
+    FirebaseMessaging.instance.getInitialMessage().then((message) async {
+      //todo check future function
+      if (message != null) {
+        final routeFromMessage = message.data["route"];
+        Navigator.of(context).pushNamed(routeFromMessage);
       }
     });
 
     ///CODE FOR NOTIFICATIONS WITH TAP FUNCTIONALITY usually resulting in some process.
-    ///when app is in : 1)background but not terminated ie. open and user is using other apps or actively using
+    ///when app is in : 2)background but not terminated ie. open and user is using other apps or actively using
     ///                  the phone
-    ///                 2)background and terminated ie.not open and user may or may not be actively using the
-    ///                 phone or any other app
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      final routeFromMessage = message.data['route'];
-      Navigator.pushNamed(context, routeFromMessage);
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
+      final routeFromMessage = message.data["route"];
+      Navigator.of(context).pushNamed(routeFromMessage);
     });
   }
 
