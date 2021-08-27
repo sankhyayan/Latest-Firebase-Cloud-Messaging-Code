@@ -4,7 +4,7 @@ import 'package:latest_fcm_template/greenScreen.dart';
 import 'package:latest_fcm_template/redPage.dart';
 import 'package:flutter/material.dart';
 
-///Receives and HANDLES message when the app is in background. Isolate top level Function
+///Receives and HANDLES message when the app is in background or terminated. Isolate top level Function
 Future<void> backgroundHandler(RemoteMessage message) async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
