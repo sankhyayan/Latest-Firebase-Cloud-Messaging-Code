@@ -21,14 +21,16 @@ class LocalNotificationService {
         ///default icon url can be anything[specified by the user]
         android: AndroidInitializationSettings("@mipmap/ic_launcher"));
 
-    await _notificationsPlugin.initialize(initializationSettings,onSelectNotification: (String? route)async{
-      if(route!=null){
-        Navigator.pushNamed(context, route);
+    ///onSelectNotification adds the tap functionality to foreground notifications
+    await _notificationsPlugin.initialize(initializationSettings,
+        onSelectNotification: (String? route) async {
+      if (route != null) {
+        await Navigator.pushNamed(context, route);
       }
     });
   }
 
-  static Future<void> display(RemoteMessage message) async {
+  static void display(RemoteMessage message) async {
     try {
       ///creating a unique integer id based on present realtime
       final int id = DateTime.now().millisecondsSinceEpoch ~/ 1000;
@@ -50,6 +52,8 @@ class LocalNotificationService {
         message.notification!.title,
         message.notification!.body,
         notificationDetails,
+
+        ///the payload value is passed into 'onSelectNotification'
         payload: message.data['route'],
       );
     } on Exception catch (e) {
