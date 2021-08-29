@@ -27,10 +27,14 @@
               android:name="io.flutter.embedding.android.SplashScreenDrawable"
               android:resource="@drawable/launch_background"
               />
-
+            <!-- The meta data below specifies a custom android channel with custom
+             priority set by you.
+             Always use the same name as the channel name defined here in your
+             AndroidNotificationChannel ID.
+             POSITIVELY add the below 2 lines to your AndroidManifest.xml -->
             <meta-data
                 android:name="com.google.firebase.messaging.default_notification_channel_id"
-                android:value="sunky"/>
+                android:value="high_importance_channel"/>
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>

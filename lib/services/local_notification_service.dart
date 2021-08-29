@@ -1,6 +1,7 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:latest_fcm_template/main.dart';
 
 /*Before declaration and use of flutter_local_notifications POSITIVELY visit AndroidManifest.xml
 in app's main folder : [android/app/src/main/AndroidManifest.xml] */
@@ -10,7 +11,7 @@ in app's main folder : [android/app/src/main/AndroidManifest.xml] */
 class LocalNotificationService {
   ///declaring a notificationPlugin as static to easily access it without object
   ///notificationPlugin is used to initialize flutter_local_notifications package
-  static final FlutterLocalNotificationsPlugin _notificationsPlugin =
+  static final FlutterLocalNotificationsPlugin notificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
   static void initialize(BuildContext context) async {
@@ -22,7 +23,7 @@ class LocalNotificationService {
         android: AndroidInitializationSettings("@mipmap/ic_launcher"));
 
     ///onSelectNotification adds the tap functionality to foreground notifications
-    await _notificationsPlugin.initialize(initializationSettings,
+    await notificationsPlugin.initialize(initializationSettings,
         onSelectNotification: (String? route) async {
       if (route != null) {
         await Navigator.pushNamed(context, route);
@@ -32,23 +33,19 @@ class LocalNotificationService {
 
   static void display(RemoteMessage message) async {
     try {
-      ///creating a unique integer id based on present realtime
-      final int id = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-
       ///notification details is the MOST important criteria to set channel in flutter_local_notifications
       final NotificationDetails notificationDetails = NotificationDetails(
+        ///using the global declared isolate channel
         android: AndroidNotificationDetails(
-          "sunky", //channel ID
-          "sunky channel", //channel NAME
-          "this is my channel", //channel DESCRIPTION
-          importance: Importance.max,
-          priority: Priority.high,
+          channel.id,
+          channel.name,
+          channel.description,
         ),
       );
 
       ///function to display heads up notification
-      await _notificationsPlugin.show(
-        id,
+      await notificationsPlugin.show(
+        message.notification.hashCode,
         message.notification!.title,
         message.notification!.body,
         notificationDetails,

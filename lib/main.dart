@@ -1,10 +1,15 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:latest_fcm_template/greenScreen.dart';
 import 'package:latest_fcm_template/redPage.dart';
 import 'package:flutter/material.dart';
 import 'package:latest_fcm_template/services/local_notification_service.dart';
-
+import 'package:latest_fcm_template/services/tokenGetter.dart';
+/*
+when sending messages FIREBASE CONSOLE or REST APIS or NODE.JS SERVERS,etc.
+ALWAYS specify the custom channel name you have specified in AndroidManifest.xml
+ */
 ///BACKGROUND MESSAGE HANDLER:
 ///Receives and HANDLES message when the app is in background or terminated.
 ///Isolate top level Function
@@ -13,6 +18,14 @@ Future<void> backgroundHandler(RemoteMessage message) async {
   print(message.data.toString());
   print(message.notification!.title);
 }
+
+///Global and isolate declaration of NOTIFICATION CHANNEL - NECESSARY
+const AndroidNotificationChannel channel = AndroidNotificationChannel(
+  "high_importance_channel", //channel ID
+  "High Importance Notifications", //channel NAME
+  "This channel is used fore important notifications", //channel DESCRIPTION
+  importance: Importance.high,
+);
 
 ///main function aka starting point
 Future<void> main() async {
@@ -23,6 +36,12 @@ Future<void> main() async {
   ///thread and hence a top level function outside the scope of main has to be defined ie. in its own isolate
   ///This is the code for handling the data of the notification when app is in background or terminated
   FirebaseMessaging.onBackgroundMessage(backgroundHandler);
+
+  ///resolving internal default channel dependency with self created custom channel
+  await LocalNotificationService.notificationsPlugin
+      .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(channel); //channel=custom channel
   runApp(MyApp());
 }
 
@@ -90,6 +109,10 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
+
+    ///access token getter for sending messages - not necessary
+    ///Used for sending push message to specific devices
+    TokenGetter.getToken();
 
     ///initializing flutter_local_notifications with custom channel and context
     LocalNotificationService.initialize(context);
